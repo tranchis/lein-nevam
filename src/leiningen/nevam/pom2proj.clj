@@ -15,7 +15,7 @@
   [loc ks]
   (reduce (fn [m k]
             (assoc m k (zx/xml1-> loc k zx/text)))
-          {} ks))
+    {} ks))
 
 (defn- map-by-attr
   [locs k-key v-key]
@@ -49,8 +49,9 @@
 
 (defn- parent
   [pom-zip]
-  (attr-map (zx/xml1-> pom-zip :parent)
-            [:groupId :artifactId :version :relativePath]))
+  (when-let [par (zx/xml1-> pom-zip :parent)]
+    (attr-map par 
+      [:groupId :artifactId :version :relativePath])))
 
 (defn- project
   [pom-zip]
@@ -100,11 +101,12 @@
 
 (defn- format-parent
   [parent]
-  (let [rel (:relativePath parent)
-        p [(artifact-sym parent) (:version parent)]]
-    (if rel
-      (conj p :relative-path rel)
-      p)))
+  (if parent
+    (let [rel (:relativePath parent)
+          p [(artifact-sym parent) (:version parent)]]
+      (if rel
+        (conj p :relative-path rel)
+        p))))
 
 (defn- format-lein-project
   [{:keys [dependencies repositories parent] :as project}]
